@@ -10,4 +10,4 @@
 - распаковать локально
 - создать venv или подключить существующий
 - `pip install -r requirements.txt`
-- для инфы по cli `python main -h`
+- для инфы по cli `python main.py -h`

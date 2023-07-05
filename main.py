@@ -7,7 +7,6 @@ from utils.dao import TableDAO
 from utils.dto import Table
 
 
-
 def _parse_args() -> argparse.Namespace:
     """
     args:
@@ -22,6 +21,7 @@ def _parse_args() -> argparse.Namespace:
     arg_parser.add_argument('--fetch', '-f', metavar='BOOL', default=False)
     arg_parser.add_argument('--make_csv', '-csv', metavar='PATH')
     arg_parser.add_argument('--insert', '-i', metavar='PATH')
+    arg_parser.add_argument('--upload', '-u', metavar='PATH')
     return arg_parser.parse_args()
 
 
@@ -51,6 +51,9 @@ def main():
                 "WARNING: check the RLS for your table so that key access is available for you."
             )
         return result
+
+    if args.upload:
+        pass
 
     if not args.fetch and not args.insert:
         raise ValueError(

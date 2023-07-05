@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import os
 from dataclasses import dataclass
 
 import pandas as pd
@@ -33,3 +35,17 @@ class Table:
         except Exception:
             raise ValueError(f'Invalid csv path "{path}"')
 
+
+@dataclass
+class Image:
+    path: str | None = None
+    title: str | None = None
+    is_preview: bool | None = None
+
+    @classmethod
+    def from_path(cls, path: str):
+        return cls(
+            path=path,
+            title=os.path.basename(path),
+            is_preview=True if os.path.basename(path).split(".")[0].lower().endswith("preview") else False
+        )

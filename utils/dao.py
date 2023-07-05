@@ -1,6 +1,6 @@
 from supabase import Client
 
-from dto import Table
+from utils.dto import Table, Image
 
 
 class TableDAO:
@@ -23,3 +23,13 @@ class TableDAO:
 
     def save(self, table_name: str, obj: Table):
         self.client.table(table_name=table_name).insert(obj.rows).execute()
+
+
+class StorageDAO:
+    def __init__(self, client: Client):
+        self.client = client
+
+    def upload_images(self, objects: list[Image]):
+        for obj in objects:
+            with open(obj.path, 'rb+') as f:
+                self.client.storage.from_('jpg_test').upload('/', f)
