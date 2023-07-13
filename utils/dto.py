@@ -44,8 +44,9 @@ class Image:
 
     @classmethod
     def from_path(cls, path: str):
-        return cls(
-            path=path,
-            title=os.path.basename(path),
-            is_preview=True if os.path.basename(path).split(".")[0].lower().endswith("preview") else False
-        )
+        if os.path.basename(path).endswith('jpg'):
+            return cls(
+                path=path,
+                title=os.path.basename(path),
+                is_preview=True if os.path.basename(path).split(".")[0].lower().endswith("preview") else False
+            )

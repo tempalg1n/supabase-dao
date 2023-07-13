@@ -1,10 +1,12 @@
 import argparse
+from os import listdir, walk
+from os.path import isfile, join
 
 from supabase import Client, create_client
 
 from utils.config import Config, load_config
-from utils.dao import TableDAO
-from utils.dto import Table
+from utils.dao import TableDAO, StorageDAO
+from utils.dto import Table, Image
 
 
 def _parse_args() -> argparse.Namespace:
@@ -17,9 +19,9 @@ def _parse_args() -> argparse.Namespace:
     insert: pass this flag the path to the table you want to load
     """
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('--table_name', '-t', metavar='NAME', required=True)
-    arg_parser.add_argument('--fetch', '-f', metavar='BOOL', default=False)
-    arg_parser.add_argument('--make_csv', '-csv', metavar='PATH')
+    arg_parser.add_argument('--table_name', '-t', metavar='NAME')
+    arg_parser.add_argument('--fetch', '-f', action="store_true")
+    arg_parser.add_argument('--make_csv', '-csv', action='store_true')
     arg_parser.add_argument('--insert', '-i', metavar='PATH')
     arg_parser.add_argument('--upload', '-u', metavar='PATH')
     return arg_parser.parse_args()
@@ -29,6 +31,7 @@ def main():
     config: Config = load_config()
     supabase: Client = create_client(config.supabase.url, config.supabase.key)
     table_dao: TableDAO = TableDAO(supabase)
+    storage_dao: StorageDAO = StorageDAO(supabase)
     args: argparse.Namespace = _parse_args()
 
     if args.insert:
@@ -44,7 +47,7 @@ def main():
     if args.fetch:
         result = table_dao.get_all(
             table_name=args.table_name,
-            path_for_csv=args.make_csv if args.make_csv else None
+            path_for_csv=f'{args.table_name}.csv' if args.make_csv else None
         )
         if not result:
             print(
@@ -53,11 +56,26 @@ def main():
         return result
 
     if args.upload:
-        pass
+        files = []
+        for (dirpath, dirnames, filenames) in walk(args.upload):
+            files.append(list(filter(lambda item: item is not None, map(lambda x:
+                                                                        Image.from_path(dirpath + x), filenames))))
+            break
+        try:
+            storage_dao.upload_images(files[0])
+            return f"Images from {args.upload} was successfully uploaded."
+        except Exception:
+            raise ValueError(
+                "Uploading error"
+            )
+        # files = [f for f in listdir(args.upload) if isfile(join(args.upload, f))]
+        # jpgs = [file for file in files if file.endswith('jpg')]
+        # print(jpgs)
 
-    if not args.fetch and not args.insert:
+    if not args.fetch and not args.insert and not args.upload:
         raise ValueError(
-            "You should specify what you want to do by setting one of the fetch or/and insert flags to some value."
+            "You should specify what you want to do by setting one of the fetch or/and insert or upload flags to some "
+            "value."
         )
 
 
